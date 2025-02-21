@@ -344,7 +344,7 @@ ggplot(data = preds,
        x = NULL,
        color = NULL)
 
-readr::write_csv(select(preds, time_date, median, l_ci80:u_ci95),
+readr::write_csv(select(preds, capta, time_date, median, l_ci80:u_ci95),
                  file = "data/data-exhibit-4.csv")
 
 ## EXHIBIT 4
@@ -597,7 +597,7 @@ ggplot(data = preds2,
        x = NULL,
        color = NULL)
 
-readr::write_csv(select(preds2, time_date, median, l_ci80:u_ci95),
+readr::write_csv(select(preds2, capta, time_date, median, l_ci80:u_ci95),
                  file = "data/data-exhibit-6.csv")
 
 ## EXHIBIT 6
@@ -707,7 +707,7 @@ ggplot(data = preds_nc,
        x = NULL,
        color = NULL)
 
-readr::write_csv(select(preds_nc, time_date, median, l_ci80:u_ci95),
+readr::write_csv(select(preds_nc, capta, time_date, median, l_ci80:u_ci95),
                  file = "data/data-exhibit-negative-control.csv")
 
 ## EXHIBIT 4

@@ -10,7 +10,10 @@ study.
 
 *   **`reproducible-code.R`:** The primary R script containing the code for data
     processing, model fitting, and generation of the tables and figures
-    presented in the paper.
+    presented in the paper. Although provided, this code is not fully
+    reproducible because the data is not publicly available.
+* **`figures-only.R`:** This R script provides the code to produce the figures
+  for Exhibit 4 and 6.
 *   **`stan/`:** This directory contains the Stan model (`.stan` file) used for
     the analysis, along with any necessary helper files.
 *   **`data/`:** This directory contains the datasets used in the analysis,
