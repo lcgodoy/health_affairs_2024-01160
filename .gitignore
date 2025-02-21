@@ -24,4 +24,9 @@
 ## R Environment Variables
 .Renviron
 
+## processed data (not public)
 data/processed.csv
+
+## stan compiled models
+stan/*.rds
+
