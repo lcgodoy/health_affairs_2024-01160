@@ -1,5 +1,7 @@
 ## Repository for: "Effect of Statewide Prenatal Substance Exposure Policy on Infant Maltreatment Report Rates" - Health Affairs Ms. No. 2024-01160
 
+[![DOI](https://zenodo.org/badge/936849094.svg)](https://doi.org/10.5281/zenodo.14908161)
+
 This repository contains the code and data necessary to reproduce the results
 presented in the manuscript "Effect of Statewide Prenatal Substance Exposure
 Policy on Infant Maltreatment Report Rates" (Health Affairs Ms. No. 2024-01160).
