@@ -4,8 +4,7 @@ This repository contains the code and data necessary to reproduce the results
 presented in the manuscript "Effect of Statewide Prenatal Substance Exposure
 Policy on Infant Maltreatment Report Rates" (Health Affairs Ms. No. 2024-01160).
 It provides all materials to allow for full computational reproducibility of the
-study. Note, however, that the dataset used for the analysis is not public and,
-therefore, is not included in the repository.
+study.
 
 **Repository Structure:**
 
@@ -15,8 +14,10 @@ therefore, is not included in the repository.
 *   **`stan/`:** This directory contains the Stan model (`.stan` file) used for
     the analysis, along with any necessary helper files.
 *   **`data/`:** This directory contains the datasets used in the analysis,
-    stored as comma-separated value (`.csv`) files.  These datasets are
-    sufficient to reproduce all figures and tables.
+    stored as comma-separated value (`.csv`) files. These datasets are
+    sufficient to reproduce Figures 4 and 6. However, the dataset used for the
+    analysis is not public and, therefore, is not included in the
+    repository. Thus, some of the results are not fully reproducible.
 *   **`figs/`:** This directory contains high-resolution versions of the figures
     included in the manuscript, stored as Portable Document Format (`.pdf`)
     files.
@@ -49,7 +50,9 @@ therefore, is not included in the repository.
 2.  **Install R and Stan:** Ensure you have `R` and `Stan` (version 2.32.2 or
     compatible) installed.
 
-3.  **Restore the R environment:**  Open the project in `R`. Install the `renv` package if you don't have it (`install.packages("renv")`). Then, restore the project's R environment using:
+3.  **Restore the R environment:** Open the project in `R`. Install the `renv`
+    package if you don't have it (`install.packages("renv")`). Then, restore the
+    project's R environment using:
     ```R
     renv::restore()
     ```
