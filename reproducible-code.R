@@ -104,6 +104,65 @@ my_dt <- my_dt |>
 my_dt <- my_dt |>
   mutate(sc_covid_deaths = as.numeric(scale(covid_deaths)))
 
+##--- descriptive stats ----
+
+my_dt |>
+  select(births,
+         all_of(cont_covars),
+         covid_deaths,
+         sei_report) |>
+  mutate(across(all_of(cont_covars), \(x) 100 * x)) |>
+  mutate(sei_report = 100 * sei_report / births) |>
+  tidyr::pivot_longer(1:9,
+                      names_to = "variable",
+                      values_to = "observed") |>
+  group_by(variable) |>
+  summarise_all(.funs = list("Mean" = \(x) mean(x, na.rm = TRUE),
+                             "SD" = \(x) sd(x, na.rm = TRUE))) |>
+  ungroup() |>
+  mutate(variable = factor(variable, levels = c("births",
+                                                cont_covars,
+                                                "covid_deaths",
+                                                "sei_report"))) |>
+  arrange(variable)
+
+my_dt |>
+  select(births,
+         all_of(cont_covars),
+         covid_deaths,
+         sei_report,
+         capta) |>
+  mutate(across(all_of(cont_covars), \(x) 100 * x)) |>
+  mutate(sei_report = 100 * sei_report / births) |>
+  tidyr::pivot_longer(1:9,
+                      names_to = "variable",
+                      values_to = "observed") |>
+  group_by(variable, capta) |>
+  summarise_all(.funs = list("Mean" = \(x) mean(x, na.rm = TRUE),
+                             "SD" = \(x) sd(x, na.rm = TRUE))) |>
+  ungroup() |>
+  mutate(variable = factor(variable, levels = c("births",
+                                                cont_covars,
+                                                "covid_deaths",
+                                                "sei_report"))) |>
+  arrange(variable)
+
+
+my_dt |>
+  filter(sei_report > 0) |>
+  transmute(foster = 100 * fostercare / sei_report) |>
+  summarise_all(.funs = list("Mean" = \(x) mean(x, na.rm = TRUE),
+                             "SD" = \(x) sd(x, na.rm = TRUE)))
+
+my_dt |>
+  filter(sei_report > 0) |>
+  transmute(foster = 100 * fostercare / sei_report,
+            capta = capta) |>
+  group_by(capta) |>
+  summarise_all(.funs = list("Mean" = \(x) mean(x, na.rm = TRUE),
+                             "SD" = \(x) sd(x, na.rm = TRUE)))
+
+
 ##--- Model SEI ----
 
 poisson_reg <- stan_model(file = "stan/final-ar.stan",
@@ -272,7 +331,12 @@ out_spt <-
 
 ## sei model parameter estimates
 out_spt |>
-  print(n = Inf)
+  mutate(median = sprintf("%.3f", median),
+         ci_80 = sprintf("(%.3f - %.3f)", l_ci80, u_ci80),
+         ci_95 = sprintf("(%.3f - %.3f)", l_ci95, u_ci95)) |>
+  select(- starts_with("l_"),
+         - starts_with("u_")) |>
+  print(n = Inf) 
 
 out_hyper <-
   sei_fit |>
@@ -352,47 +416,6 @@ ggsave(filename = "figs/exhibit-4.pdf",
        width = 12,
        height = 7,
        dpi = 300)
-
-##--- additional table (supplement) ----
-
-
-capta_timepoints <-
-  sei_fit |>
-  tidybayes::spread_draws(`beta[1]`, `beta[2]`, `beta[17]`) |>
-  select(- .chain, - .iteration, - .draw) |>
-  mutate(capta_12 = `beta[1]` + 12 * (`beta[2]` + `beta[17]`)) |>
-  mutate(capta_24 = `beta[1]` + 16 * (`beta[2]` + `beta[17]`)) |>
-  mutate(capta_36 = `beta[1]` + 20 * (`beta[2]` + `beta[17]`)) |>
-  select(starts_with("capta")) |>
-  tidyr::pivot_longer(1:3) |>
-  mutate(value = exp(value)) |>
-  group_by(name) |>
-  summarise(median = median(value),
-            l_ci80 = quantile(value, probs = .1),
-            u_ci80 = quantile(value, probs = .9),
-            l_ci95 = quantile(value,  probs = .025),
-            u_ci95 = quantile(value,  probs = .975)) |>
-  transmute(coefficient = name,
-            median = round(median, 2),
-            ci_80 = sprintf("(%.2f - %.2f)", l_ci80, u_ci80),
-            ci_95 = sprintf("(%.2f - %.2f)", l_ci95, u_ci95))
-
-preds_timepoints <-
-  preds |>
-  filter(time_date %in% c("2019-02-01", sprintf("%s-03-01",
-                                                c(2020, 2021, 2022)))) |>
-      select(time_date, capta, median, l_ci80:u_ci95) |>
-      transmute(coefficient = sprintf("Predictions at:  %s",
-                                      as.character(time_date)),
-                median = round(median / 100, 2),
-                ci_80 = sprintf("(%.2f - %.2f)", l_ci80 / 100, u_ci80 / 100),
-                ci_95 = sprintf("(%.2f - %.2f)", l_ci95 / 100, u_ci95 / 100))
-
-## SUPPLEMENTAL EXHIBIT 8
-bind_rows(
-    preds_timepoints,
-    capta_timepoints
-)
 
 ##--- model fostercare ----
 
@@ -523,7 +546,9 @@ out_spt2 <-
 
 ## foster model parameter estimates
 out_spt2 |>
-  print(n = Inf)
+  mutate_if(is.numeric, \(x) sprintf("%.3f", x)) |>
+  print(n = Inf) 
+
 
 out_hyper2 <-
   foster_fit |>
@@ -710,8 +735,84 @@ ggplot(data = preds_nc,
 readr::write_csv(select(preds_nc, capta, time_date, median, l_ci80:u_ci95),
                  file = "data/data-exhibit-negative-control.csv")
 
-## EXHIBIT 4
+## EXHIBIT ?
 ggsave(filename = "figs/exhibit-negative-control.pdf",
        width = 12,
        height = 7,
        dpi = 300)
+
+##--- additional table (supplement) ----
+
+capta_timepoints <-
+  sei_fit |>
+  tidybayes::spread_draws(`beta[1]`, `beta[2]`, `beta[17]`) |>
+  select(- .chain, - .iteration, - .draw) |>
+  mutate(capta_12 = `beta[1]` + 12 * (`beta[2]` + `beta[17]`)) |>
+  mutate(capta_24 = `beta[1]` + 16 * (`beta[2]` + `beta[17]`)) |>
+  mutate(capta_36 = `beta[1]` + 20 * (`beta[2]` + `beta[17]`)) |>
+  select(starts_with("capta")) |>
+  tidyr::pivot_longer(1:3) |>
+  mutate(value = exp(value)) |>
+  group_by(name) |>
+  summarise(median = median(value),
+            l_ci80 = quantile(value, probs = .1),
+            u_ci80 = quantile(value, probs = .9),
+            l_ci95 = quantile(value,  probs = .025),
+            u_ci95 = quantile(value,  probs = .975)) |>
+  transmute(coefficient = name,
+            median = round(median, 3),
+            ci_80 = sprintf("(%.2f - %.2f)", l_ci80, u_ci80),
+            ci_95 = sprintf("(%.2f - %.2f)", l_ci95, u_ci95))
+
+preds_c_timepoints <-
+  preds |>
+  filter(time_date %in% c("2019-02-01", sprintf("%s-03-01",
+                                                c(2020, 2021, 2022)))) |>
+      select(time_date, capta, median, l_ci80:u_ci95) |>
+      transmute(coefficient = sprintf("Predictions at:  %s",
+                                      as.character(time_date)),
+                median = round(median / 100, 2),
+                ci_80 = sprintf("(%.2f - %.2f)", l_ci80 / 100, u_ci80 / 100),
+                ci_95 = sprintf("(%.2f - %.2f)", l_ci95 / 100, u_ci95 / 100))
+
+foster_timepoints <-
+  foster_fit |>
+  tidybayes::spread_draws(`beta[1]`, `beta[2]`, `beta[17]`) |>
+  select(- .chain, - .iteration, - .draw) |>
+  mutate(capta_12 = `beta[1]` + 12 * (`beta[2]` + `beta[17]`)) |>
+  mutate(capta_24 = `beta[1]` + 16 * (`beta[2]` + `beta[17]`)) |>
+  mutate(capta_36 = `beta[1]` + 20 * (`beta[2]` + `beta[17]`)) |>
+  select(starts_with("capta")) |>
+  tidyr::pivot_longer(1:3) |>
+  mutate(value = exp(value)) |>
+  group_by(name) |>
+  summarise(median = median(value),
+            l_ci80 = quantile(value, probs = .1),
+            u_ci80 = quantile(value, probs = .9),
+            l_ci95 = quantile(value,  probs = .025),
+            u_ci95 = quantile(value,  probs = .975)) |>
+  transmute(coefficient = name,
+            median = round(median, 3),
+            ci_80 = sprintf("(%.2f - %.2f)", l_ci80, u_ci80),
+            ci_95 = sprintf("(%.2f - %.2f)", l_ci95, u_ci95))
+
+preds_f_timepoints <-
+  preds2 |>
+  filter(time_date %in% c("2019-02-01", sprintf("%s-03-01",
+                                                c(2020, 2021, 2022)))) |>
+      select(time_date, capta, median, l_ci80:u_ci95) |>
+      transmute(coefficient = sprintf("Predictions at:  %s",
+                                      as.character(time_date)),
+                median = round(median / 100, 2),
+                ci_80 = sprintf("(%.2f - %.2f)", l_ci80 / 100, u_ci80 / 100),
+                ci_95 = sprintf("(%.2f - %.2f)", l_ci95 / 100, u_ci95 / 100))
+
+
+
+
+## SUPPLEMENTAL EXHIBIT 8
+bind_rows(
+    mutate(preds_c_timepoints, type = "SEI", .before = coefficient),
+    mutate(preds_f_timepoints, type = "Fostercare", .before = coefficient),
+)
+
