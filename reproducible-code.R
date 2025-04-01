@@ -393,11 +393,12 @@ ggplot(data = preds,
   geom_line(aes(color = as.factor(capta))) +
   geom_linerange(aes(color = as.factor(capta),
                      ymin = l_ci95,
-                     ymax = u_ci95)) +
-  geom_linerange(aes(color = as.factor(capta),
-                     ymin = l_ci80,
-                     ymax = u_ci80),
+                     ymax = u_ci95),
                  lwd = 1.2) +
+  ## geom_linerange(aes(color = as.factor(capta),
+  ##                    ymin = l_ci80,
+  ##                    ymax = u_ci80),
+  ##                lwd = 1.2) +
   geom_point(aes(fill = as.factor(capta)),
              pch = 21,
              color = 1, size = 3) +
@@ -408,11 +409,19 @@ ggplot(data = preds,
        x = NULL,
        color = NULL)
 
-readr::write_csv(select(preds, capta, time_date, median, l_ci80:u_ci95),
-                 file = "data/data-exhibit-4.csv")
+select(preds, capta,
+       time_date,
+       median,
+       l_ci95, u_ci95) |>
+  rename("time" = "time_date",
+         "y" = "median",
+         "lower_ci" = "l_ci95",
+         "upper_ci" = "u_ci95") |>
+  openxlsx::write.xlsx(x = _,
+                       file = "data/data-exhibit-2.xlsx")
 
 ## EXHIBIT 4
-ggsave(filename = "figs/exhibit-4.pdf",
+ggsave(filename = "figs/exhibit-2.pdf",
        width = 12,
        height = 7,
        dpi = 300)
@@ -605,11 +614,12 @@ ggplot(data = preds2,
   geom_line(aes(color = as.factor(capta))) +
   geom_linerange(aes(color = as.factor(capta),
                      ymin = l_ci95,
-                     ymax = u_ci95)) +
-  geom_linerange(aes(color = as.factor(capta),
-                     ymin = l_ci80,
-                     ymax = u_ci80),
+                     ymax = u_ci95),
                  lwd = 1.2) +
+  ## geom_linerange(aes(color = as.factor(capta),
+  ##                    ymin = l_ci80,
+  ##                    ymax = u_ci80),
+  ##                lwd = 1.2) +
   geom_point(aes(fill = as.factor(capta)),
              pch = 21,
              color = 1, size = 3) +
@@ -622,11 +632,19 @@ ggplot(data = preds2,
        x = NULL,
        color = NULL)
 
-readr::write_csv(select(preds2, capta, time_date, median, l_ci80:u_ci95),
-                 file = "data/data-exhibit-6.csv")
+select(preds2, capta,
+       time_date,
+       median,
+       l_ci95, u_ci95) |>
+  rename("time" = "time_date",
+         "y" = "median",
+         "lower_ci" = "l_ci95",
+         "upper_ci" = "u_ci95") |>
+  openxlsx::write.xlsx(x = _,
+                       file = "data/data-exhibit-4.xlsx")
 
-## EXHIBIT 6
-ggsave(filename = "figs/exhibit-6.pdf",
+## EXHIBIT 4
+ggsave(filename = "figs/exhibit-4.pdf",
        width = 12,
        height = 7,
        dpi = 300)
